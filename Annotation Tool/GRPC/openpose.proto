@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package openposeTransport;
+
+// The greeting service definition.
+service OpenposeDetect {
+    rpc Upload (Send) returns (OpenposeResult) {}
+}
+
+message Send{
+	string filename = 1;//文件名
+	bytes img = 2;//文件
+	int32 h = 3;//高
+	int32 w = 4;//宽
+	int32 c = 5;//channel
+	int32 r = 6;//旋转
+}
+
+message OpenposeResult{
+	bytes result = 1;//返回openpose关键点
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package raftTransport;
+
+// The greeting service definition.
+service raftDetect {
+    rpc Upload (Send) returns (raftResult) {}
+}
+
+message Send{
+	string Type = 1;//message type
+	oneof content{
+		frameRAFT frameInfo=2;
+		string videoName=3;//video fileName
+	}
+}
+
+message raftResult{
+	bool status = 1; //success or not
+	bytes forw = 2;
+	oneof content{
+		bytes backw = 3;//backward RAFT
+		int32 dummy = 4;//dummy value
+	}
+}
+
+message frameRAFT{
+	bytes prev = 1;//prev frames
+	bytes next_ = 2;//next frames
+	int32 r = 3;//rotate
+}
