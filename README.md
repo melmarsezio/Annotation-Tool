@@ -1,7 +1,8 @@
 # 标注工具使用手册
 作者 谢晨成 [z5237028@ad.unsw.edu.au](mailto:z5237028@ad.unsw.edu.au)
 
-<img src="https://github.com/melmarsezio/siemens/blob/main/siemens.png" width = "300" height = "300" alt="siemens" align=center />
+<img src="https://github.com/melmarsezio/Annotation-Tool/blob/master/siemens.png" width = "300" height = "300" alt="siemens" align=center />
+
 **组成部分：Client, Openpose Server, RAFT Server.**
 
 ## 目录
@@ -16,14 +17,14 @@
 --------
 <span id="Purpose"></span>
 ## 1.Purpose
-&nbsp;&nbsp;&nbsp;&nbsp;Semi-automatic annotation tool on massive volumn of CT pose videoclips (not CT scan images), generates key points annotations align with the Common Objects in Context form ("COCO" from the Microsoft).
+&nbsp;&nbsp;&nbsp;&nbsp;Semi-automatic annotation tool on massive volumn of CT pose videoclips (not CT scan images), generates key points annotations align with the Common Objects in Context form ("COCO" from the Microsoft).  
 &nbsp;&nbsp;&nbsp;&nbsp;Expected usage: After training with these annotation datas, CT machine can automatically allocate patients body parts without the intervention of physician.
 
 --------
 <span id="Flowchart"></span>
 ## 2.流程图 Flowchart
 
-![Flowchart](https://github.com/melmarsezio/siemens/blob/main/Flowchart.png "Flowchart")
+![Flowchart](https://github.com/melmarsezio/Annotation-Tool/blob/master/Flowchart.png "Flowchart")
 
 --------
 <span id="OpenposeServer"></span>
@@ -31,7 +32,7 @@
 + File location: `intern@10.10.192.40:/home/intern/OPServer`
 + `python openposeServer.py --port 60001` (default --port 50051)
 
-Openpose Server使用了CMU开发的人体姿态识别项目openpose，github开源地址：[CMU-Perceptual-Computing-Lab/openpose](https://github.com/CMU-Perceptual-Computing-Lab/openpose "CMU-Perceptual-Computing-Lab/openpose"), 论文链接：[OpenPose: Realtime Multi-Person 2D Pose Estimation Using Part Affinity Fields](https://ieeexplore.ieee.org/document/8765346 "OpenPose: Realtime Multi-Person 2D Pose Estimation Using Part Affinity Fields"), 论文介绍：[【人体姿态识别】 Openpose论文](https://zhuanlan.zhihu.com/p/48507352 "【人体姿态识别】 Openpose论文").
+Openpose Server使用了CMU开发的人体姿态识别项目openpose，github开源地址：[CMU-Perceptual-Computing-Lab/openpose](https://github.com/CMU-Perceptual-Computing-Lab/openpose "CMU-Perceptual-Computing-Lab/openpose"), 论文链接：[OpenPose: Realtime Multi-Person 2D Pose Estimation Using Part Affinity Fields](https://github.com/melmarsezio/Annotation-Tool/blob/master/OPServer/OpenPose%20Realtime%20Multi-Person%202D%20Pose%20Estimation%20using%20Part%20Affinity%20Fields.pdf "OpenPose: Realtime Multi-Person 2D Pose Estimation Using Part Affinity Fields"), 论文介绍：[【人体姿态识别】 Openpose论文](https://zhuanlan.zhihu.com/p/48507352 "【人体姿态识别】 Openpose论文").
 
 > OpenPose人体姿态识别项目是美国卡耐基梅隆大学（CMU）基于卷积神经网络和监督学习并以caffe为框架开发的开源库。可以实现人体动作、面部表情、手指运动等姿态估计。适用于单人和多人，具有极好的鲁棒性。是世界上首个基于深度学习的实时多人二维姿态估计应用，基于它的实例如雨后春笋般涌现。人体姿态估计技术在体育健身、动作采集、3D试衣、舆情监测等领域具有广阔的应用前景，人们更加熟悉的应用就是抖音尬舞机。
 
@@ -43,7 +44,7 @@ Openpose Server利用grpc协议将client发送的图片进行实时分析，并�
 + File location: `intern@10.10.192.40:/home/intern/RAFTServer`
 + `python raftServer.py --model raft/raft-small.pth --dir /home/intern/RAFTavi/ --port 60000` (default --port 50000)
 
-RAFT Server使用了Zachary Teed 和 Jia Deng发表的RAFT: Recurrent All-Pairs Field Transforms for Optical Flow论文和开源模型代码. 论文链接：[RAFT: Recurrent All-Pairs Field Transforms for Optical Flow](https://arxiv.org/abs/2003.12039 "RAFT: Recurrent All-Pairs Field Transforms for Optical Flow")，论文介绍：[ECCV 2020最佳论文讲了啥？作者为ImageNet一作、李飞飞高徒邓嘉](https://zhuanlan.zhihu.com/p/205020999 "ECCV 2020最佳论文讲了啥？作者为ImageNet一作、李飞飞高徒邓嘉")，github开源模型地址：[princeton-vl/RAFT](https://github.com/CMU-Perceptual-Computing-Lab/openpose "princeton-vl/RAFT").
+RAFT Server使用了Zachary Teed 和 Jia Deng发表的RAFT: Recurrent All-Pairs Field Transforms for Optical Flow论文和开源模型代码. 论文链接：[RAFT: Recurrent All-Pairs Field Transforms for Optical Flow](https://github.com/melmarsezio/Annotation-Tool/blob/master/RAFTServer/RAFT%20Recurrent%20All-Pairs%20Field%20Transforms%20for%20Optical%20Flow.pdf "RAFT: Recurrent All-Pairs Field Transforms for Optical Flow")，论文介绍：[ECCV 2020最佳论文讲了啥？作者为ImageNet一作、李飞飞高徒邓嘉](https://zhuanlan.zhihu.com/p/205020999 "ECCV 2020最佳论文讲了啥？作者为ImageNet一作、李飞飞高徒邓嘉")，github开源模型地址：[princeton-vl/RAFT](https://github.com/CMU-Perceptual-Computing-Lab/openpose "princeton-vl/RAFT").
 
 > RAFT由三个主要组件组成:
 > + 特征编码器，该编码器为每个像素提取特征向量;
@@ -116,27 +117,32 @@ RAFT Server利用grpc协议监听的信息有两种：
 ### 7.Sample setup
 Server端-1 (Openpose Server):
 
-   ssh intern@10.10.192.40
-   ENTER PASSWORD
-   cd OPServer/
-   conda activate torch
-   python3 openposeServer.py --port 60000
+```
+ssh intern@10.10.192.40
+ENTER PASSWORD
+cd OPServer/
+conda activate torch
+python3 openposeServer.py --port 60000
+```
 
 Server端-2 (RAFT Server):
 
-   ssh intern@10.10.192.40
-   ENTER PASSWORD
-   cd RAFTServer/
-   conda activate torch
-   python3 raftServer.py --port 60001
+```
+ssh intern@10.10.192.40
+ENTER PASSWORD
+cd RAFTServer/
+conda activate torch
+python3 raftServer.py --port 60001
+```
 
 Client端:
 
-   activate cv
-   D:
-   cd Annotation Tool
-   python client.py
-
+```
+activate cv
+D:
+cd Annotation Tool
+python client.py
+```
 --------
 
 如有任何问题，可邮件至[z5237028@ad.unsw.edu.au](mailto:z5237028@ad.unsw.edu.au)
