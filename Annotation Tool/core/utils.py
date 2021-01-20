@@ -34,7 +34,7 @@ def add(*tups):
             retVal[i] += tup[i]
     return tuple(retVal)
 
-def mult(*tups):
+def multi(*tups):
     """element-wise multiplication on tuple.
 
     :param *tups: list of tuples
@@ -205,10 +205,67 @@ def fillIP(IP_str, listOfQLineEdit):
         listOfQLineEdit[i].setText(ip[i])
 
 def checkRAFT(video, *RAFT):
+    """check the validity of RAFT files' dimension
+
+    :param video: the Video class import from core.fileIO.Video
+    :param *RAFT: list of RAFT class import from core.fileIO.RAFT
+    :rtype: boolean
+    """
     l,h,w,c = video.shape
     videoShape = l-1,w,h,c
     for raft in RAFT:
         if videoShape[:3] != raft.shape[:3]:
+            print('videoShape:',videoShape[:3],'raftShape:',raft.shape[:3])
             return False
     return True
+
+class Region(list):
+    def __init__(self):
+        list.__init__(self)
     
+    def __contains__(self, item):
+        for items in self:
+            if items[0] <= item <= items[1]:
+                return True
+        return False
+
+def merge(regions):
+    """merge lists of regions(tuples)
+
+    :param regions: list of regions
+    :rtype: list of merged regions
+    """
+    retVal = Region()
+    if not regions:
+        return retVal
+    maxIndex = int(max([r[1] for r in regions]))+2
+    flg = [0 for _ in range(maxIndex)]
+    for r in regions:
+        flg[int(r[0])]+=1
+        flg[int(r[1])+1]-=1
+    cnt = [0]
+    for i in flg:
+        cnt.append(cnt[-1]+i)
+    for i in range(1,len(cnt)):
+        if cnt[i]>0 and cnt[i-1]<=0:
+            s = i-1
+        if cnt[i]<=0 and cnt[i-1]>0:
+            e = i-2
+            retVal.append([s,e])
+    return retVal
+
+def getGap(idx, direct, regions):
+    """return the gap of the region idx belongs to
+
+    :param idx: index in the regions
+    :param direct: index moving direction
+    :param regions: the whole regions list
+    :rtype: gap (int)
+    """
+    gap=1
+    for r in regions:
+        if idx-direct in r:
+            gap = abs(r[0]-r[1])+2
+            break
+    return direct*gap
+
