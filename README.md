@@ -74,27 +74,33 @@ RAFT Server利用grpc协议监听的信息有两种：
    + `Ctrl+V` Load Video. _(support `*.mpeg *.mov *.wmv *.rmvb *.flv *.mp4 *.avi`)_
    + `Ctrl+I` Directly Load Images. _(disabled. Currently we design to convert video into `class Video` inherit from cv2.VideoCapture to avoid memory exceed, defined in `D:\Annotation Tool\core\fileIO.Video`. This design conflicts with Image input and need extra deisgn/options)_
    + `Ctrl+A` Load `*.annot` file which can resume from last saved points. _(Be careful with the directory of the video, assume unchanged, re-configurate if changed, still under development)_
+   
+2. load intensity chart by `Ctrl+shift+v` and define over-exposured frame regions:
+   + autometic analysis on intensity and predict exposured frame regions
+   + drag region boundary to edit region bounds
+   + `Enter` to add new region
+   + `right click` to delete region that hovers on
 
-2. obtain Key points we want to propogate via one of below method:
+3. obtain Key points we want to propogate via one of below method:
    + manually add key points by hold `A` and click on image.
    + Click `OPENPOSE` bottom, call server to estimate all keypoints for you.
-
-3. adjust inaccurate keypoint location by two step:
+   
+4. adjust inaccurate keypoint location by two step:
    1. click on the key point to select.
    2. hold `Ctrl` and click new location to move it/ or press `D` to delete that point.
 
-4. request for full RAFT result via one of below method:
+5. request for full RAFT result via one of below method:
    + `Ctrl+R` Load `*.avi` RAFT file. _(similar to video, converted into `class RAFT` inherit from cv2.VideoCapture, autometically remove third channel and take care of offsets and precision. The directory of RAFT file is assumed unchanged, re-configurate if changed, still under development)_
    + by click `Get RAFT` bottom. Receive `*.avi` file and saved in root directory of `client.py` If video filename is not matched with any RAFT result on server, message status shows `fail` from the server.
    Can not proceed to next step until RAFT result is loaded!
 
-5. propogate keypoints using RAFT result by click `Propogate` bottom and select end page#. The client will propogate keypoints from current page to selected page. _(if did not load RAFT file, by click `Propogate` it will autometically call server to `Get RAFT` first)_
+6. propogate keypoints using RAFT result by click `Propogate` bottom and select end page#. The client will propogate keypoints from current page to selected page. _(if did not load RAFT file, by click `Propogate` it will autometically call server to `Get RAFT` first)_
 
-6. adjust any inaccurate keypoints in between and repropogate.
+7. adjust any inaccurate keypoints in between and repropogate.
 
-7. `Ctrl+S` save `*.annot` annotation file anytime you feel like or `Ctrl+Shift+S` to save as new file. _(optional, but recommanded)_
+8. `Ctrl+S` save `*.annot` annotation file anytime you feel like or `Ctrl+Shift+S` to save as new file. _(optional, but recommanded)_
 
-8. `Ctrl+C` Save keypoints results to `*.json` file in coco from.
+9. `Ctrl+C` save keypoints results to `*.json` file in coco from.
 
 
 --------
@@ -107,9 +113,8 @@ RAFT Server利用grpc协议监听的信息有两种：
 - [x] 设置边界（定义视野盲区）
 - [ ] 批量控制关键点（锁死范围内的某几种关键点）
 - [x] 检查RAFT文件是否和视频文件匹配
-- [ ] 过滤过曝帧和异常帧
-   - [ ] 显示Intensity窗口，由用户自主选择过曝范围，或
-   - [ ] 设置阈值，自动过滤过曝帧
+- [x] 过滤过曝帧和异常帧
+   - [x] 显示Intensity窗口，设置阈值，自动设置过曝帧，由用户自主修改
 - [x] COCO格式输出
 
 --------
