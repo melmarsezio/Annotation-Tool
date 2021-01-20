@@ -121,6 +121,7 @@ class addWindow(QDialog, add_Ui_Dialog):
         mainWin.printMsg(f'Key Point "{type_}" is added to the list at ({self.coor[0]:.2f}, {self.coor[1]:.2f}).')
         self.close()
 
+#open grpc tunnel for single frame RAFT calculation
 def grpcRAFT(mainWin,prev,next_):
     prev = cv.imencode('.jpg',mainWin.videoCap[prev])[1].tobytes()
     next_ = cv.imencode('.jpg',mainWin.videoCap[next_])[1].tobytes()
@@ -142,6 +143,7 @@ def grpcRAFT(mainWin,prev,next_):
         return None
     return flo
 
+#add moved keypoints to next frame
 def moveNextKPs(mainWin, flo, idx, gap, H, W):
     cur_kps = mainWin.params["keyPoints"][idx-gap]
     next_kps = mainWin.params["keyPoints"][idx]
@@ -351,7 +353,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         #------------------#
         self.actionLoad_Parameter.triggered.connect(self.loadDistortionParameter)
         self.actionLoad_RAFT.triggered.connect(self.loadOptFlow)
-        self.actionLoadIntCSV.triggered.connect(self.loadIntCSN)
+        self.actionLoadIntCSV.triggered.connect(self.loadIntCSV)
         #------------------#
         self.actionSave.triggered.connect(self.saveAnnotation)
         self.actionSave_as.triggered.connect(self.saveAsAnnotation)
@@ -544,7 +546,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.videoCap = objectType(self.params["path"],self.UndistEnable.checkState(),self._undist)
         self.maxpage = len(self.videoCap)
         self.resetWrapper()
-    
+
     #Update title (title showes file directory and save status)
     def updateWinTitle(self, state=True):
         titleList = self.windowTitle().split()
@@ -672,17 +674,23 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.printMsg(f'Undistortion Parameter file loaded successfully from {fname}')
 
     #Load the pre-calculated Intensity Datas
-    def loadIntCSN(self):
+    def loadIntCSV(self):
         dlg = QFileDialog()
         fname,_ = dlg.getOpenFileName(self, 'Open Intensity Data File', './', "Intensity datas (*.csv)")
         if not fname:
             return
-        intensity = np.loadtxt(open(fname,'rb'),delimiter=',')
-        if len(intensity) != self.maxpage:
+        absDiff = np.loadtxt(open(fname,'rb'),delimiter=',')
+        if len(absDiff) != self.maxpage:
             reply = QMessageBox.critical(self, "Error", "Incorrect CSV File, frames length not match!", QMessageBox.Ok, QMessageBox.Ok)
             return 
-        self.ScrollBar.newPlot(intensity)
+        self.ScrollBar.newPlot(absDiff)
         self.printMsg(f'Intensity Data File loaded successfully from {fname}')
+        rms = utils.RMSCurve(absDiff, 0.9)
+        errorRegions = utils.detectErrorRegion(rms, sThresh=150, eThresh=10, winSize=20)
+        self.printMsg(f'Add error frames at {errorRegions}')
+        # print(errorRegions)
+        for region in errorRegions:
+            self.ScrollBar.addHighLight(*region)
 
     #Check if Undistortion enabled without *.yml file
     def checkUndEnable(self):
