@@ -205,11 +205,14 @@ class ScrollBar(pg.PlotItem):
         self.newPlot(y)
         self.il.setBounds([1,max_])
     
-    def addHighLight(self):
+    def addHighLight(self,start=None,end=None):
         if self.y is None:
             return
         length = len(self.y)
-        lr = Region(values=self.bound(self.Pos()-10,self.Pos()+10),
+        if start is None and end is None:
+            start = self.Pos()-10
+            end = self.Pos()+10
+        lr = Region(values=self.bound(start,end),
                                  pen=pg.mkPen('r'),hoverPen=pg.mkPen('r',width=4),
                                  brush=pg.mkBrush((255,0,0,80)),bounds=[1,length],
                                  swapMode='sort')

@@ -269,3 +269,31 @@ def getGap(idx, direct, regions):
             break
     return direct*gap
 
+
+def RMS(ave, cur, factor):
+    return ave*factor+(1-factor)*(cur**2)
+
+def RMSCurve(points, factor = 0.5):
+    ave = 0
+    average = []
+    for i in range(len(points)):
+        ave = RMS(ave, points[i], factor)
+        average.append(ave)
+    return average
+
+def checkStable(rms, idx, winSize):
+    return (max(rms[idx:idx+winSize]) == rms[idx])
+
+def detectErrorRegion(rms, sThresh, eThresh, winSize):
+    retVal = []
+    start=False
+    for idx,r in enumerate(rms):
+        if not start and r>=sThresh:
+            start = True
+            s = idx
+        elif start and r<=eThresh and checkStable(rms, idx, winSize):
+            retVal.append([s+1,idx+1])
+            start = False
+    if start:
+        retVal.append([s+1,idx+1])
+    return retVal
