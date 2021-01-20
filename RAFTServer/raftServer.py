@@ -54,7 +54,7 @@ class RaftDetect(raft_pb2_grpc.raftDetectServicer):
             print(f'    time:{time.time()-start:.2f}s')
             return raft_pb2.raftResult(status=True,forw=flow_up.tobytes(),dummy=0)
         elif request.Type=='video':
-            videoName = request.videoName.split('.')[0]+'.avi'
+            videoName = request.videoName+'.avi'
             forwPath = args.dir+'forward/'
             backPath = args.dir+'backward/'
             if os.path.isfile(forwPath+videoName) and os.path.isfile(backPath+videoName):
