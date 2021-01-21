@@ -150,6 +150,19 @@ def grpcRAFT(mainWin,prev,next_):
         return None
     return flo
 
+#refresh FastList
+def loadFastList(mainWin):
+    mainWin.FastList.clear()
+    if not mainWin.FastFrames:
+        return
+    mainWin.FastList.addItems([str(f) for f in sorted(mainWin.FastFrames)])
+    mainWin.FastList.setEnabled(True)
+    
+    for i in range(mainWin.FastList.count()):
+        if mainWin.FastList.item(i).text()==str(mainWin.params["page"]+1):
+            mainWin.FastList.setCurrentRow(i)
+            break
+
 #add moved keypoints to next frame
 def moveNextKPs(mainWin, flo, idx, gap, H, W, distThresh=50):
     cur_kps = mainWin.params["keyPoints"][idx-gap]
@@ -161,8 +174,9 @@ def moveNextKPs(mainWin, flo, idx, gap, H, W, distThresh=50):
             largeMove = True
         next_kps[key] = utils.add(cur_kps[key],move[key])
     if largeMove:
-        mainWin.ScrollBar.addHighLight(idx+1,idx+1) # +1 due to 1 offset between index and page number e.g. index0 is page1
         print('frame',idx+1,'has too much movement')
+        mainWin.FastFrames.append(idx+1)
+        loadFastList(mainWin)
 
 ###### opticalFlowUI ######
 class optFlowWindow(QDialog, optFlow_Ui_Dialog):
@@ -340,6 +354,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.videoCap = None # Video class import from core.fileIO.Video
         self.RAFT_FW = None # RAFT class import from core.fileIO.RAFT
         self.RAFT_BW = None # RAFT class import from core.fileIO.RAFT
+        self.FastFrames = [] # store all fast motion frame numbers
         self.maxpage = 0
         self.params["page"] = 0 #image page
         self.params["savePath"] = None #annotation file directory
@@ -412,6 +427,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.pb_CalcOptFlow.clicked.connect(self.getOptFlow)
         self.pb_Prop.clicked.connect(self.optFlow)
         ## Image Window ##
+        self.FastList.itemPressed.connect(self.JumpToFrame)
         self.cb_autoSave.stateChanged.connect(self.setAutoSave)
         self.pb_rotateC.clicked.connect(self.rotateClock)
         self.pb_rotateAC.clicked.connect(self.rotateAntiClock)
@@ -496,8 +512,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.printMsg(f'Cannot find correct RAFT file under selected folder!!')
             reply = QMessageBox.critical(self, "Error", "Cannot find correct RAFT file under selected folder!!", QMessageBox.Ok, QMessageBox.Ok)
-            
-            
+    
     #save COCO file (json)
     def saveCoco(self):
         if not self.videoCap:
@@ -574,6 +589,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.UndistAddressWin.setPlainText(self.params["undistPath"])
         self.loadKeyPointList()
         self.progressBar.setValue(self.progressCount())
+        self.FastFrames = []
 
     #Reset variable
     def reset(self):
@@ -957,6 +973,11 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                 count+=1
         return count
 
+    #Click FastList to jump to "frame"
+    def JumpToFrame(self):
+        if self.FastList.currentItem():
+            self.ScrollBar.setPos(int(self.FastList.currentItem().text()))
+
     #reload frame
     def paintEvent(self,event):
         self.ctrl = self.ctrl and self.centralwidget.hasFocus()
@@ -1016,6 +1037,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.params["page"] = self.ScrollBar.Pos()-1
         self.sb_Page.setValue(self.params["page"]+1)
         self.loadKeyPointList()
+        loadFastList(self)
         self.update()
         self.centralwidget.setFocus()
     
