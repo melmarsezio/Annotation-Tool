@@ -69,15 +69,15 @@ RAFT Server利用grpc协议监听的信息有两种：
 + `D:\Annotation Tool\core` configuration files, utils files and algorithm files besides main `client.py`.
 
 ### Work flow in client
-&nbsp;&nbsp; 0.`Ctrl+U` Load `*.yml` file for undistortion configuration _(optional, but recommanded)_
+&nbsp;&nbsp; 0.`Ctrl+U` Load `*.yml` file for undistortion configuration _(optional, but recommanded for better performance)_
 
 1. read material via one of below method:
    + `Ctrl+V` Load Video. _(support `*.mpeg *.mov *.wmv *.rmvb *.flv *.mp4 *.avi`)_
    + `Ctrl+I` Directly Load Images. _(disabled. Currently we design to convert video into `class Video` inherit from cv2.VideoCapture to avoid memory exceed, defined in `D:\Annotation Tool\core\fileIO.Video`. This design conflicts with Image input and need extra deisgn/options)_
    + `Ctrl+A` Load `*.annot` file which can resume from last saved points. _(Be careful with the directory of the video, assume unchanged, re-configurate if changed, still under development)_
    
-2. load intensity chart by `Ctrl+shift+v` and define over-exposured frame regions:
-   + autometic analysis on intensity and predict exposured frame regions
+2. load intensity chart by `Ctrl+shift+v` and define over-exposured frame regions automatically _(optional, but strongly recommanded)_:
+   + automatic analysis on intensity and predict over-exposured frame regions and filtered these frames out
    + drag region boundary to edit region bounds
    + `Enter` to add new region
    + `right click` to delete region that hovers on
@@ -95,17 +95,19 @@ RAFT Server利用grpc协议监听的信息有两种：
    2. hold `Ctrl` and click new location to move it/ or press `D` to delete that point.
 
 6. request for full RAFT result via one of below method:
-   + `Ctrl+R` Load `*.avi` RAFT file. _(similar to video, converted into `class RAFT` inherit from cv2.VideoCapture, autometically remove third channel and take care of offsets and precision. The directory of RAFT file is assumed unchanged, re-configurate if changed, still under development)_
+   + `Ctrl+R` Load `*.avi` RAFT file. _(similar to video, converted into `class RAFT` inherit from cv2.VideoCapture, automatically remove third channel and take care of offsets and precision. The directory of RAFT file is assumed unchanged, re-configurate if changed, still under development)_
    + by click `Get RAFT` bottom. Receive `*.avi` file and saved in root directory of `client.py` If video filename is not matched with any RAFT result on server, message status shows `fail` from the server.
    Can not proceed to next step until RAFT result is loaded!
 
-7. propogate keypoints using RAFT result by click `Propogate` bottom and select end page#. The client will propogate keypoints from current page to selected page. _(if did not load RAFT file, by click `Propogate` it will autometically call server to `Get RAFT` first)_
+7. propogate keypoints using RAFT result by click `Propogate` bottom and select end page#. The client will propogate keypoints from current page to selected page. _(if did not load RAFT file, by click `Propogate` it will automatically call server to `Get RAFT` first)_
 
-8. adjust any inaccurate keypoints in between and repropogate.
+8. the frames with large keypoint movement will be listed next to image for user double-check. Click on the option and image will jump to that frame.
 
-9. `Ctrl+S` save `*.annot` annotation file anytime you feel like or `Ctrl+Shift+S` to save as new file. _(optional, but recommanded)_
+9. adjust any inaccurate keypoints in between and repropogate.
 
-10. `Ctrl+C` save keypoints results to `*.json` file in coco from.
+10. `Ctrl+S` save `*.annot` annotation file anytime you feel like or `Ctrl+Shift+S` to save as new file. _(optional, but recommanded)_
+
+11. `Ctrl+C` save keypoints results to `*.json` file in coco from.
 
 
 --------
@@ -161,7 +163,7 @@ python client.py
 - `Ctrl+I` Load Images /Select Files `(*.jpg *.gif *.png *.ico)`
 - `Ctrl+U` Load Undistortion Configuration File /Select File `(*.yml)`
 - `Ctrl+A` Load Annotation File /Select File `(*.annot)`
-- `Ctrl+R` Load RAFT File /Select Directory, autometically search for RAFT in same name `(*.avi)`
+- `Ctrl+R` Load RAFT File /Select Directory, automatically search for RAFT in same name `(*.avi)`
 - `Ctrl+Shift+V` Load Intensity CSV `(*.csv)` 
 
 
