@@ -383,12 +383,21 @@ box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QListView" name="FastList">
+         <widget class="QListWidget" name="FastList">
+          <property name="minimumSize">
+           <size>
+            <width>160</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="maximumSize">
            <size>
             <width>160</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="cursor" stdset="0">
+           <cursorShape>PointingHandCursor</cursorShape>
           </property>
          </widget>
         </item>
