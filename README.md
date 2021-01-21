@@ -13,6 +13,7 @@
 5. [Client](#Client)
 6. [Function list](#FunctionList)
 7. [Sample setup](#SampleSetup)
+8. [Shortcut list](#ShortcutList)
 
 --------
 <span id="Purpose"></span>
@@ -80,27 +81,31 @@ RAFT Server利用grpc协议监听的信息有两种：
    + drag region boundary to edit region bounds
    + `Enter` to add new region
    + `right click` to delete region that hovers on
+   
+3. `Ctrl+shift+c` to configurate default directories and IP address settings:
+   + you might want to use this in the case when video/local RAFT file is moved and `*.annot` file stores old directory, or
+   + server IP has changed or certain port number is blocked and alternative port is required
 
-3. obtain Key points we want to propogate via one of below method:
+4. obtain Key points we want to propogate via one of below method:
    + manually add key points by hold `A` and click on image.
    + Click `OPENPOSE` bottom, call server to estimate all keypoints for you.
    
-4. adjust inaccurate keypoint location by two step:
+5. adjust inaccurate keypoint location by two step:
    1. click on the key point to select.
    2. hold `Ctrl` and click new location to move it/ or press `D` to delete that point.
 
-5. request for full RAFT result via one of below method:
+6. request for full RAFT result via one of below method:
    + `Ctrl+R` Load `*.avi` RAFT file. _(similar to video, converted into `class RAFT` inherit from cv2.VideoCapture, autometically remove third channel and take care of offsets and precision. The directory of RAFT file is assumed unchanged, re-configurate if changed, still under development)_
    + by click `Get RAFT` bottom. Receive `*.avi` file and saved in root directory of `client.py` If video filename is not matched with any RAFT result on server, message status shows `fail` from the server.
    Can not proceed to next step until RAFT result is loaded!
 
-6. propogate keypoints using RAFT result by click `Propogate` bottom and select end page#. The client will propogate keypoints from current page to selected page. _(if did not load RAFT file, by click `Propogate` it will autometically call server to `Get RAFT` first)_
+7. propogate keypoints using RAFT result by click `Propogate` bottom and select end page#. The client will propogate keypoints from current page to selected page. _(if did not load RAFT file, by click `Propogate` it will autometically call server to `Get RAFT` first)_
 
-7. adjust any inaccurate keypoints in between and repropogate.
+8. adjust any inaccurate keypoints in between and repropogate.
 
-8. `Ctrl+S` save `*.annot` annotation file anytime you feel like or `Ctrl+Shift+S` to save as new file. _(optional, but recommanded)_
+9. `Ctrl+S` save `*.annot` annotation file anytime you feel like or `Ctrl+Shift+S` to save as new file. _(optional, but recommanded)_
 
-9. `Ctrl+C` save keypoints results to `*.json` file in coco from.
+10. `Ctrl+C` save keypoints results to `*.json` file in coco from.
 
 
 --------
@@ -119,7 +124,7 @@ RAFT Server利用grpc协议监听的信息有两种：
 
 --------
 <span id="SampleSetup"></span>
-### 7.Sample setup
+## 7.Sample setup
 Server端-1 (Openpose Server):
 
 ```
@@ -148,6 +153,34 @@ D:
 cd Annotation Tool
 python client.py
 ```
+
 --------
+<span id="ShortcutList"></span>
+## 8.Shortcut list
+- `Ctrl+V` Load Video /Select File `(*.mpeg *.mov *.wmv *.rmvb *.flv *.mp4 *.avi)`
+- `Ctrl+I` Load Images /Select Files `(*.jpg *.gif *.png *.ico)`
+- `Ctrl+U` Load Undistortion Configuration File /Select File `(*.yml)`
+- `Ctrl+A` Load Annotation File /Select File `(*.annot)`
+- `Ctrl+R` Load RAFT File /Select Directory, autometically search for RAFT in same name `(*.avi)`
+- `Ctrl+Shift+V` Load Intensity CSV `(*.csv)` 
+
+
++ `Ctrl+Shit+C` Directory and IP configuration
++ `Ctrl+F` Fullscreen/Normal Size switch
++ `Ctrl+Q` Quit Client 
+
+
+- `Ctrl+S` Save to `(*.annot)`
+- `Ctrl+Shift+S` Save as new `(*.annot)`
+- `Ctrl+C` Output Coco file `(*.json)`
+- `Ctrl+Shift+I` Output Images 
+
+
++ `A+LeftButton` Add new Key Point
++ `D` Delete selected Key Point
++ `R` Reset selected Key Point 
+
+--------
+
 
 如有任何问题，可邮件至[z5237028@ad.unsw.edu.au](mailto:z5237028@ad.unsw.edu.au)
