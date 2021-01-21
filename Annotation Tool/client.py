@@ -121,12 +121,19 @@ class addWindow(QDialog, add_Ui_Dialog):
         mainWin.printMsg(f'Key Point "{type_}" is added to the list at ({self.coor[0]:.2f}, {self.coor[1]:.2f}).')
         self.close()
 
+def EucliDist(moves, power = 2):
+    accumDist = 0
+    for m in moves:
+        accumDist+= m**power
+    distance = accumDist**(1/power)
+    return distance
+
 #open grpc tunnel for single frame RAFT calculation
 def grpcRAFT(mainWin,prev,next_):
     prev = cv.imencode('.jpg',mainWin.videoCap[prev])[1].tobytes()
     next_ = cv.imencode('.jpg',mainWin.videoCap[next_])[1].tobytes()
     try:
-        print('send request')
+        # print('send request')
         with grpc.insecure_channel(mainWin.IP['RAFT']) as channel:
             stub = raft_pb2_grpc.raftDetectStub(channel)
             response = stub.Upload(raft_pb2.Send(Type='frames',
@@ -144,12 +151,18 @@ def grpcRAFT(mainWin,prev,next_):
     return flo
 
 #add moved keypoints to next frame
-def moveNextKPs(mainWin, flo, idx, gap, H, W):
+def moveNextKPs(mainWin, flo, idx, gap, H, W, distThresh=50):
     cur_kps = mainWin.params["keyPoints"][idx-gap]
     next_kps = mainWin.params["keyPoints"][idx]
     move = utils.calcMove(flo,cur_kps,H,W,mainWin.CT)
+    largeMove = False
     for key in cur_kps:
+        if not largeMove and EucliDist(utils.multi(move[key],(H,W)))>=distThresh:
+            largeMove = True
         next_kps[key] = utils.add(cur_kps[key],move[key])
+    if largeMove:
+        mainWin.ScrollBar.addHighLight(idx+1,idx+1) # +1 due to 1 offset between index and page number e.g. index0 is page1
+        print('frame',idx+1,'has too much movement')
 
 ###### opticalFlowUI ######
 class optFlowWindow(QDialog, optFlow_Ui_Dialog):
@@ -158,20 +171,20 @@ class optFlowWindow(QDialog, optFlow_Ui_Dialog):
         self.setupUi(self)
         
         self.mainWin = mainWin
-        self.sb_to.setMinimum(1)
-        self.sb_to.setMaximum(mainWin.maxpage)
         self.cur = mainWin.params["page"]
-        self.sb_to.setValue(self.cur+1)
+
+        self.sb_backw.setMinimum(1)
+        self.sb_backw.setMaximum(self.cur+1)
+        self.sb_backw.setValue(1)
+        self.sb_forw.setMinimum(self.cur+1)
+        self.sb_forw.setMaximum(mainWin.maxpage)
+        self.sb_forw.setValue(mainWin.maxpage)
         self.pb_continue.clicked.connect(self.continue_)
-
-    def continue_(self):
-        end = self.sb_to.value()-1
+    
+    def opt(self, end):
+        # type_ = self.cb_type.currentText()
         if end==self.cur:
-            reply = QMessageBox.critical(self, "Error", "Can not have same start and end page number!!", QMessageBox.Ok, QMessageBox.Ok)
             return
-        type_ = self.cb_type.currentText()
-        self.close()
-
         mainWin = self.mainWin
         direct = 1 if end>self.cur else -1
         W,H,D = mainWin.videoCap[self.cur].shape
@@ -194,12 +207,24 @@ class optFlowWindow(QDialog, optFlow_Ui_Dialog):
                 flo = flo.reshape((H,W,2))
             else:
                 flo = _optFlow[idx-gap]
-            # print('use',idx-gap,'calc',idx)
+
+            print('use',idx-gap,' to calc',idx)
             moveNextKPs(mainWin, flo, idx, gap, H, W)
+
+    def continue_(self):
+        backw = self.sb_backw.value()-1
+        forw = self.sb_forw.value()-1
+        self.close()
+        print('<===== start flowing backward <=====')
+        self.opt(backw)
+        print('=====> start flowing forward  =====>')
+        self.opt(forw)
+
+        mainWin = self.mainWin
         mainWin.progressBar.setValue(mainWin.progressCount())
         mainWin.updateWinTitle(False)
 
-###### loadRAFT_UI ######
+###### loadRAFT_UI ######  NOT IN USE
 class loadRAFTWindow(QDialog, loadRAFT_Ui_Dialog):
     def __init__(self, mainWin, parent=None):
         super(loadRAFTWindow, self).__init__(parent)
@@ -329,9 +354,11 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.pixmap = QPixmap()
         #algorithm related variables
         self.IP = dict() # to save all IP address
-        self.IP['default'] = {'openpose':'10.10.192.40:60000','RAFT':'10.10.192.40:60001'}
-        self.IP['openpose'] = '10.10.192.40:60000'
-        self.IP['RAFT'] = '10.10.192.40:60001'
+        opIP = '10.10.192.40:60000'
+        rfIP = '10.10.192.40:59999'
+        self.IP['default'] = {'openpose':opIP,'RAFT':rfIP}
+        self.IP['openpose'] = opIP
+        self.IP['RAFT'] = rfIP
         self.params["undistPath"] = './core/IntrinsicParameter.yml' #Undistortion parameter file directory
         try:
             self._undist = Undistortion(self.params["undistPath"]) #Undistortion object
@@ -443,9 +470,33 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         if not self.videoCap:
             reply = QMessageBox.critical(self, "Error", "Empty Image Collection!!", QMessageBox.Ok, QMessageBox.Ok)
             return
-        dlg = loadRAFTWindow(self)
-        dlg.show()
-        dlg.exec_()
+        # dlg = loadRAFTWindow(self)
+        # dlg.show()
+        # dlg.exec_()
+        dlg = QFileDialog()
+        dlg.setFileMode(QFileDialog.Directory)
+        path = dlg.getExistingDirectory(self, "Choose RAFT path", "./")
+        if not path:
+            return
+
+        path += '/'
+        videoName = (self.params["path"].split('/')[-1]).split('.')[0]
+        forwName = videoName+'_forw.avi'
+        backwName = videoName+'_backw.avi'
+        if os.path.isfile(path+forwName) and os.path.isfile(path+backwName):
+            self.printMsg(f'Start loading RAFT file from {path+forwName} and {path+backwName}...')
+            self.RAFT_FW = RAFT(path+forwName)
+            self.RAFT_BW = RAFT(path+backwName)
+            if self.RAFT_FW and self.RAFT_BW and utils.checkRAFT(self.videoCap,self.RAFT_FW,self.RAFT_BW):
+                self.printMsg(f'{path+forwName} and {path+backwName} are successfully loaded!!')
+            else:    
+                self.RAFT_FW = None
+                self.RAFT_BW = None
+                self.printMsg(f'Something is wrong, check if RAFT file is valid.')
+        else:
+            self.printMsg(f'Cannot find correct RAFT file under selected folder!!')
+            reply = QMessageBox.critical(self, "Error", "Cannot find correct RAFT file under selected folder!!", QMessageBox.Ok, QMessageBox.Ok)
+            
             
     #save COCO file (json)
     def saveCoco(self):
@@ -676,21 +727,28 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
     #Load the pre-calculated Intensity Datas
     def loadIntCSV(self):
         dlg = QFileDialog()
-        fname,_ = dlg.getOpenFileName(self, 'Open Intensity Data File', './', "Intensity datas (*.csv)")
-        if not fname:
+        dlg.setFileMode(QFileDialog.Directory)
+        path = dlg.getExistingDirectory(self, "Choose Intensity Data File path", "./")
+        if not path:
             return
-        absDiff = np.loadtxt(open(fname,'rb'),delimiter=',')
-        if len(absDiff) != self.maxpage:
-            reply = QMessageBox.critical(self, "Error", "Incorrect CSV File, frames length not match!", QMessageBox.Ok, QMessageBox.Ok)
-            return 
-        self.ScrollBar.newPlot(absDiff)
-        self.printMsg(f'Intensity Data File loaded successfully from {fname}')
-        rms = utils.RMSCurve(absDiff, 0.9)
-        errorRegions = utils.detectErrorRegion(rms, sThresh=150, eThresh=10, winSize=20)
-        self.printMsg(f'Add error frames at {errorRegions}')
-        # print(errorRegions)
-        for region in errorRegions:
-            self.ScrollBar.addHighLight(*region)
+            
+        path += '/'
+        CSVName = path+(self.params["path"].split('/')[-1]).split('.')[0]+'.csv'
+        if os.path.isfile(CSVName):
+            absDiff = np.loadtxt(open(CSVName,'rb'),delimiter=',')
+            if len(absDiff) != self.maxpage:
+                reply = QMessageBox.critical(self, "Error", "Incorrect CSV File, frames length not match!", QMessageBox.Ok, QMessageBox.Ok)
+                return 
+            self.ScrollBar.newPlot(absDiff)
+            self.printMsg(f'Intensity Data File loaded successfully from {CSVName}')
+            rms = utils.RMSCurve(absDiff, 0.9)
+            errorRegions = utils.detectErrorRegion(rms, sThresh=150, eThresh=20, winSize=30)
+            self.printMsg(f'Add error frames at {errorRegions}')
+            for region in errorRegions:
+                self.ScrollBar.addHighLight(*region)
+        else:
+            self.printMsg(f'Cannot find correct Intensity Data File under selected folder!!')
+            reply = QMessageBox.critical(self, "Error", "Cannot find correct Intensity Data File under selected folder!!", QMessageBox.Ok, QMessageBox.Ok)
 
     #Check if Undistortion enabled without *.yml file
     def checkUndEnable(self):
