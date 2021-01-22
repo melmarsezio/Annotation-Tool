@@ -121,6 +121,7 @@ class addWindow(QDialog, add_Ui_Dialog):
         mainWin.printMsg(f'Key Point "{type_}" is added to the list at ({self.coor[0]:.2f}, {self.coor[1]:.2f}).')
         self.close()
 
+#calculate Duclidean Distance
 def EucliDist(moves, power = 2):
     accumDist = 0
     for m in moves:
@@ -137,8 +138,8 @@ def grpcRAFT(mainWin,prev,next_):
         with grpc.insecure_channel(mainWin.IP['RAFT']) as channel:
             stub = raft_pb2_grpc.raftDetectStub(channel)
             response = stub.Upload(raft_pb2.Send(Type='frames',
-                                                    frameInfo=raft_pb2.frameRAFT(prev=prev,next_=next_,
-                                                    r=4-mainWin.params["rotDeg"]//90)))
+                                                 frameInfo=raft_pb2.frameRAFT(prev=prev,next_=next_,
+                                                                              r=4-mainWin.params["rotDeg"]//90)))
         if response.status:
             flo = np.frombuffer(response.forw,dtype='float16')
         else:
@@ -175,7 +176,8 @@ def moveNextKPs(mainWin, flo, idx, gap, H, W, distThresh=50):
         next_kps[key] = utils.add(cur_kps[key],move[key])
     if largeMove:
         print('frame',idx+1,'has too much movement')
-        mainWin.FastFrames.append(idx+1)
+        if idx+1 not in mainWin.FastFrames:
+            mainWin.FastFrames.append(idx+1)
         loadFastList(mainWin)
 
 ###### opticalFlowUI ######
