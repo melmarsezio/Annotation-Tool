@@ -165,8 +165,8 @@ python client.py
 - `Ctrl+I` Load Images /Select Files `(*.jpg *.gif *.png *.ico)`
 - `Ctrl+U` Load Undistortion Configuration File /Select File `(*.yml)`
 - `Ctrl+A` Load Annotation File /Select File `(*.annot)`
-- `Ctrl+R` Load RAFT File /Select Directory, automatically search for RAFT in same name `(*.avi)`
-- `Ctrl+Shift+V` Load Intensity CSV `(*.csv)` 
+- `Ctrl+R` Load RAFT File /Select Directory, auto search for RAFT in same name `(*.avi)`
+- `Ctrl+Shift+V` Load Intensity CSV /Select Directory, auto search for CSV in same name `(*.csv)` 
 
 
 + `Ctrl+Shit+C` Directory and IP configuration
@@ -177,7 +177,7 @@ python client.py
 - `Ctrl+S` Save to `(*.annot)`
 - `Ctrl+Shift+S` Save as new `(*.annot)`
 - `Ctrl+C` Output Coco file `(*.json)`
-- `Ctrl+Shift+I` Output Images 
+- `Ctrl+Shift+I` Output Images /Select Directory
 
 
 + `A+LeftButton` Add new Key Point
